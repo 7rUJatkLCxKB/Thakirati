@@ -1,40 +1,42 @@
 name: Build Thakirati APK
 
 on:
-workflow_dispatch:
-push:
-paths:
-- 'ThakiratiAndroidProject.zip'
+  workflow_dispatch:
+  push:
+    paths:
+      - 'ThakiratiAndroidProject.zip'
+      - '.github/workflows/android.yml'
 
 jobs:
-build:
-runs-on: ubuntu-latest
+  build:
+    runs-on: ubuntu-latest
 
-steps:
-  - name: Download project
-    uses: actions/checkout@v4
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
 
-  - name: Set up Java
-    uses: actions/setup-java@v4
-    with:
-      distribution: temurin
-      java-version: '17'
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
 
-  - name: Unzip project
-    run: |
-      unzip -o ThakiratiAndroidProject.zip -d project
-      find project -maxdepth 3 -type f | head -80
+      - name: Unzip project
+        run: |
+          unzip -o ThakiratiAndroidProject.zip -d project
+          find project -maxdepth 4 -type f | head -80
 
-  - name: Build APK
-    run: |
-      cd project
-      PROJECT_DIR="$(find . -name settings.gradle.kts -o -name settings.gradle | head -1 | xargs dirname)"
-      cd "$PROJECT_DIR"
-      chmod +x gradlew
-      ./gradlew assembleDebug
+      - name: Build APK
+        run: |
+          PROJECT_DIR=$(find project -name settings.gradle.kts -o -name settings.gradle | head -1 | xargs dirname)
+          echo "Project directory: $PROJECT_DIR"
+          test -n "$PROJECT_DIR"
+          cd "$PROJECT_DIR"
+          chmod +x gradlew
+          ./gradlew assembleDebug
 
-  - name: Upload APK
-    uses: actions/upload-artifact@v4
-    with:
-      name: Thakirati-APK
-      path: project/**/build/outputs/apk/debug/*.apk
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: Thakirati-APK
+          path: project/**/build/outputs/apk/debug/*.apk
